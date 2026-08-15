@@ -1,7 +1,7 @@
 const Users = require("../models/auth");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const sendVerificationEmail = require("../utils/sendEmail");
+const sendVerificationEmail = require("../utils/sendVerificationEmail");
 require("dotenv").config();
 
 const generateToken = (id) => {
