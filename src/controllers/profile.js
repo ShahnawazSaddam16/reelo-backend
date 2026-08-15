@@ -1,5 +1,5 @@
 const Profile = require("../models/profile");
-
+const Users = require("../models/auth");
 const createProfile = async (req, res) => {
     try {
         const { username, bio, links } = req.body;
@@ -8,8 +8,17 @@ const createProfile = async (req, res) => {
             return res.status(400).json({ success: false, message: "Please fill all fields" });
         }
 
-        const existingProfile = await Profile.findOne({ userId: req.user._id });
 
+        if (!req.userId) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+
+        const user = await Users.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const existingProfile = await Profile.findOne({ userId: req.userId });
         if (existingProfile) {
             return res.status(400).json({ success: false, message: "Profile already exists" });
         }
@@ -17,8 +26,8 @@ const createProfile = async (req, res) => {
         const avator = req.file ? req.file.path : "";
 
         const newProfile = await Profile.create({
-            userId: req.user._id,
-            email: req.user.email,
+            userId: req.userId,
+            email: user.email,
             username,
             avator,
             bio,
@@ -32,4 +41,23 @@ const createProfile = async (req, res) => {
     }
 };
 
-module.exports = { createProfile };
+const userProfile = async (req, res) => {
+    try {
+        if (!req.userId) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+
+        const profile = await Profile.findOne({ userId: req.userId });
+
+        if (!profile) {
+            return res.status(404).json({ success: false, message: "Profile not found" });
+        }
+
+        return res.status(200).json({ success: true, profile });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+module.exports = { createProfile, userProfile };

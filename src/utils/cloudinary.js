@@ -11,7 +11,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-        folder: "profile_avatars",
+        folder: "reelo",
         allowed_formats: ["jpg", "jpeg", "png", "webp"]
     }
 });
