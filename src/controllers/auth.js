@@ -20,6 +20,11 @@ const SignIn = async (req, res) => {
             return res.status(400).json({ success: false, message: "Please fill all fields" });
         }
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ success: false, message: "Invalid email" });
+        }
+
         const existingEmail = await Users.findOne({ email });
         if (existingEmail) {
             return res.status(409).json({ success: false, message: "User already exists" });
@@ -37,7 +42,21 @@ const SignIn = async (req, res) => {
             verificationCodeExpires: Date.now() + 10 * 60 * 1000
         });
 
-        await sendVerificationEmail(email, code);
+        try {
+            await sendVerificationEmail(email, code);
+        } catch (mailErr) {
+            console.error("Failed to send verification email:", mailErr);
+            // rollback created user to avoid orphaned records when email fails
+            try {
+                await Users.findByIdAndDelete(newUser._id);
+            } catch (delErr) {
+                console.error("Failed to delete user after email failure:", delErr);
+            }
+            return res.status(500).json({
+                success: false,
+                message: "Failed to send verification email. Check SMTP credentials and network.",
+            });
+        }
 
         return res.status(200).json({
             success: true,
@@ -52,13 +71,13 @@ const SignIn = async (req, res) => {
 
 const VerifyEmail = async (req, res) => {
     try {
-        const { userId, code } = req.body;
+        const { userId, code, email } = req.body;
 
-        if (!userId || !code) {
+        if ((!userId && !email) || !code) {
             return res.status(400).json({ success: false, message: "Please fill all fields" });
         }
 
-        const user = await Users.findById(userId);
+        const user = userId ? await Users.findById(userId) : await Users.findOne({ email });
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
@@ -100,13 +119,13 @@ const VerifyEmail = async (req, res) => {
 
 const ResendCode = async (req, res) => {
     try {
-        const { userId } = req.body;
+        const { userId, email } = req.body;
 
-        if (!userId) {
+        if (!userId && !email) {
             return res.status(400).json({ success: false, message: "Please fill all fields" });
         }
 
-        const user = await Users.findById(userId);
+        const user = userId ? await Users.findById(userId) : await Users.findOne({ email });
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
