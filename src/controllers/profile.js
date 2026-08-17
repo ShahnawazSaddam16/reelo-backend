@@ -1,5 +1,6 @@
 const Profile = require("../models/profile");
 const Users = require("../models/auth");
+
 const createProfile = async (req, res) => {
     try {
         const { username, bio, links } = req.body;
@@ -60,4 +61,31 @@ const userProfile = async (req, res) => {
     }
 };
 
-module.exports = { createProfile, userProfile };
+const editProfile = async (req, res) => {
+    try {
+        const { username, bio, links } = req.body;
+
+        if (!req.userId) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+
+        const profile = await Profile.findOne({ userId: req.userId });
+        if (!profile) {
+            return res.status(404).json({ success: false, message: "Profile not found" });
+        }
+
+        if (username) profile.username = username;
+        if (bio) profile.bio = bio;
+        if (links) profile.links = links;
+        if (req.file) profile.avator = req.file.path;
+
+        await profile.save();
+
+        return res.status(200).json({ success: true, message: "Profile Updated Successfully", profile });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+module.exports = { createProfile, userProfile, editProfile };
