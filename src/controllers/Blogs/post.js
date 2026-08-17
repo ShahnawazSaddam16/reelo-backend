@@ -38,12 +38,10 @@ const createPost = async (req, res) => {
     }
 
     if (!content) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Please provide content or upload a media file",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Please provide content or upload a media file",
+      });
     }
 
     const newPost = await Posts.create({
@@ -55,13 +53,11 @@ const createPost = async (req, res) => {
       desc,
     });
 
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "Post created successfully",
-        post: newPost,
-      });
+    return res.status(201).json({
+      success: true,
+      message: "Post created successfully",
+      post: newPost,
+    });
   } catch (error) {
     return res
       .status(500)
@@ -69,6 +65,23 @@ const createPost = async (req, res) => {
   }
 };
 
+const userPosts = async (req, res) => {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+    const userPosts = await Posts.find({ userId: req.userId });
 
+    if (!userPosts) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User Posts not found" });
+    }
 
-module.exports = { createPost };
+    return res.status(200).json({ success: true, userPosts });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err });
+  }
+};
+
+module.exports = { createPost, userPosts };
