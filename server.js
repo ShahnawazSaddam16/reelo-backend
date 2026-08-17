@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const dbConnection = require("./src/config/dbConnection");
 const authRoutes = require("./src/routes/authRoutes");
 const profileRoutes = require("./src/routes/profileRoutes");
+const blogRoutes = require("./src/routes/BlogRoutes");
 
 const app = express();
 dotenv.config();
@@ -20,6 +21,7 @@ app.use(cors({
 //Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/blog", blogRoutes);
 
 //dbConnection
 dbConnection();
