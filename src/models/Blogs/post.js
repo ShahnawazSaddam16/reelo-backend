@@ -1,39 +1,46 @@
 const mongoose = require("mongoose");
 
-const postSchema = new mongoose.Schema({
+const postSchema = new mongoose.Schema(
+  {
     userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    profileId: { 
+    type: mongoose.Schema.Types.ObjectId, ref: "Profile",
+    required: true,
     },
     email: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     title: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     desc: {
-        type: String,
+      type: String,
     },
     content: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     contentType: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     likes: {
-        type: Number,
-        default: 0,
+      type: Number,
+      default: 0,
     },
     comments: {
-        type: Array,
-        default: [],
+      type: Array,
+      default: [],
     },
-}, { timestamps: true });
+  },
+  { timestamps: true },
+);
 
 postSchema.index({ userId: 1 });
 postSchema.index({ createdAt: -1 });

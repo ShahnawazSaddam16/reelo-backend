@@ -1,5 +1,6 @@
 const Posts = require("../../models/Blogs/post");
 const Users = require("../../models/auth");
+const Profile = require("../../models/profile");
 
 const createPost = async (req, res) => {
   try {
@@ -20,6 +21,13 @@ const createPost = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
+    }
+
+    const profile = await Profile.findOne({ userId: req.userId });
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
     }
 
     let content = bodyContent || null;
@@ -46,6 +54,7 @@ const createPost = async (req, res) => {
 
     const newPost = await Posts.create({
       userId: req.userId,
+      profileId: profile._id,
       email: user.email,
       content,
       contentType,
@@ -97,7 +106,9 @@ const editPost = async (req, res) => {
 
     const post = await Posts.findById(id);
     if (!post) {
-      return res.status(404).json({ success: false, message: "Post not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
     }
 
     if (post.userId.toString() !== req.userId) {
@@ -150,7 +161,9 @@ const deletePost = async (req, res) => {
 
     const post = await Posts.findById(id);
     if (!post) {
-      return res.status(404).json({ success: false, message: "Post not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
     }
 
     if (post.userId.toString() !== req.userId) {
@@ -170,15 +183,16 @@ const deletePost = async (req, res) => {
   }
 };
 
-const getAllPosts = async(req,res)=>{
-  try{
-    const allposts = await Posts.find().sort({createdAt: -1});
-
-    return res.status(200).json({success: true, allposts});
-  } catch(err){
+const getAllPosts = async (req, res) => {
+  try {
+    const allposts = await Posts.find()
+      .sort({ createdAt: -1 })
+      .populate("profileId", "username avator");
+    return res.status(200).json({ success: true, allposts });
+  } catch (err) {
     console.error(err);
-    return res.status(500).json({success: false, message: err});
+    return res.status(500).json({ success: false, message: err });
   }
-}
+};
 
 module.exports = { createPost, userPosts, editPost, deletePost, getAllPosts };
