@@ -7,7 +7,7 @@ const {createPost, userPosts, editPost, deletePost, getAllPosts} = require("../c
 
 //Post Routes
 router.post("/create-post", authMiddleware, limiter, upload.any(), createPost);
-router.get("/user-posts", authMiddleware, limiter, userPosts);
+router.get("/my-posts", authMiddleware, limiter, userPosts);
 router.put("/edit-post/:id", authMiddleware, limiter, upload.any(), editPost);
 router.delete("/delete-post/:id", authMiddleware, limiter, deletePost);
 router.get("/all-posts", authMiddleware, limiter, getAllPosts);

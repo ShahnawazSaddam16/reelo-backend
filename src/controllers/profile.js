@@ -88,4 +88,47 @@ const editProfile = async (req, res) => {
     }
 };
 
-module.exports = { createProfile, userProfile, editProfile };
+const getAllProfiles = async (req, res) => {
+    try {
+        const { search = "", page = 1, limit = 15 } = req.query;
+
+        const query = search
+            ? { username: { $regex: `^${search}`, $options: "i" } }
+            : {};
+
+        const allProfiles = await Profile.find(query)
+            .sort({ createdAt: -1 })
+            .skip((Number(page) - 1) * Number(limit))
+            .limit(Number(limit));
+
+        const total = await Profile.countDocuments(query);
+
+        return res.status(200).json({
+            success: true,
+            allProfiles,
+            hasMore: Number(page) * Number(limit) < total,
+            total
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}
+
+const getProfileById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const profile = await Profile.findById(id);
+
+        if (!profile) {
+            return res.status(404).json({ success: false, message: "Profile not found" });
+        }
+
+        return res.status(200).json({ success: true, profile });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+
+module.exports = { createProfile, userProfile, editProfile, getAllProfiles, getProfileById };
