@@ -23,6 +23,5 @@ const userSchema = new mongoose.Schema({
     verificationCodeExpires: { type: Date }
 }, { timestamps: true });
 
-// Note: `unique: true` on the schema field already creates an index for `email`.
 
 module.exports = mongoose.model("Users", userSchema);

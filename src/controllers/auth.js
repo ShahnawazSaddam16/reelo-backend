@@ -46,7 +46,6 @@ const SignIn = async (req, res) => {
             await sendVerificationEmail(email, code);
         } catch (mailErr) {
             console.error("Failed to send verification email:", mailErr);
-            // rollback created user to avoid orphaned records when email fails
             try {
                 await Users.findByIdAndDelete(newUser._id);
             } catch (delErr) {
