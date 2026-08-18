@@ -51,6 +51,8 @@ const createPost = async (req, res) => {
       contentType,
       title,
       desc,
+      likes: 0,
+      comments: [],
     });
 
     return res.status(201).json({
