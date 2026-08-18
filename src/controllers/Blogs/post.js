@@ -84,4 +84,88 @@ const userPosts = async (req, res) => {
   }
 };
 
-module.exports = { createPost, userPosts };
+const editPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content: bodyContent, title, desc } = req.body;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const post = await Posts.findById(id);
+    if (!post) {
+      return res.status(404).json({ success: false, message: "Post not found" });
+    }
+
+    if (post.userId.toString() !== req.userId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    let content = bodyContent || post.content;
+    let contentType = post.contentType;
+
+    if (req.files && req.files.length > 0) {
+      const file = req.files[0];
+      content =
+        file.path ||
+        file.secure_url ||
+        file.url ||
+        file.location ||
+        file.filename ||
+        content;
+      contentType = file.mimetype || contentType;
+    } else if (bodyContent) {
+      contentType = "text";
+    }
+
+    post.content = content;
+    post.contentType = contentType;
+    post.title = title || post.title;
+    post.desc = desc || post.desc;
+
+    await post.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Post updated successfully",
+      post,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+const deletePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const post = await Posts.findById(id);
+    if (!post) {
+      return res.status(404).json({ success: false, message: "Post not found" });
+    }
+
+    if (post.userId.toString() !== req.userId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    await Posts.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Post deleted successfully",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+module.exports = { createPost, userPosts, editPost, deletePost };
