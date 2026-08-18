@@ -31,6 +31,5 @@ const profileSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Note: `unique: true` on `userId` and `username` already creates indexes.
 
 module.exports = mongoose.model("Profile", profileSchema);
