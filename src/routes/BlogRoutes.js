@@ -3,9 +3,13 @@ const router = express.Router();
 const limiter = require("../utils/limiter");
 const authMiddleware = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
-const {createPost, userPosts} = require("../controllers/Blogs/post");
+const {createPost, userPosts, editPost, deletePost} = require("../controllers/Blogs/post");
 
+//Post Routes
 router.post("/create-post", authMiddleware, limiter, upload.any(), createPost);
 router.get("/user-posts", authMiddleware, limiter, userPosts);
+router.put("/edit-post/:id", authMiddleware, limiter, upload.any(), editPost);
+router.delete("/delete-post/:id", authMiddleware, limiter, deletePost);
+
 
 module.exports = router;
