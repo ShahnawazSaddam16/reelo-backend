@@ -195,4 +195,16 @@ const getAllPosts = async (req, res) => {
   }
 };
 
-module.exports = { createPost, userPosts, editPost, deletePost, getAllPosts };
+const getPostsByUserId = async (req, res) => {
+    try {
+        const { profileId } = req.params;
+
+        const userPosts = await Posts.find({ profileId }).sort({ createdAt: -1 });
+
+        return res.status(200).json({ success: true, userPosts });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+module.exports = { createPost, userPosts, editPost, deletePost, getAllPosts, getPostsByUserId };
