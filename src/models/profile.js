@@ -31,8 +31,6 @@ const profileSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Indexes to speed up lookups
-profileSchema.index({ userId: 1 });
-profileSchema.index({ username: 1 });
+// Note: `unique: true` on `userId` and `username` already creates indexes.
 
 module.exports = mongoose.model("Profile", profileSchema);
