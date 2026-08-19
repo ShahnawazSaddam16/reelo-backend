@@ -97,6 +97,7 @@ const addComment = async (req, res) => {
       userId: req.userId,
       profileId: profile._id,
       username: profile.username,
+      avator: profile.avator,
       text,
       createdAt: new Date(),
     };
@@ -126,26 +127,29 @@ const deleteComment = async (req, res) => {
 
     const post = await Posts.findById(id);
     if (!post) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Post not found" });
+      return res.status(404).json({ success: false, message: "Post not found" });
     }
 
     const comment = post.comments.id(commentId);
     if (!comment) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Comment not found" });
+      return res.status(404).json({ success: false, message: "Comment not found" });
     }
 
-    if (
-      comment.userId.toString() !== req.userId &&
-      post.userId.toString() !== req.userId
-    ) {
+    const requesterProfile = await Profile.findOne({ userId: req.userId });
+
+    const isCommentOwner =
+      comment.userId && comment.userId.toString() === req.userId.toString();
+
+    const isPostOwner =
+      requesterProfile &&
+      post.profileId &&
+      post.profileId.toString() === requesterProfile._id.toString();
+
+    if (!isCommentOwner && !isPostOwner) {
       return res.status(403).json({ success: false, message: "Forbidden" });
     }
 
-    comment.deleteOne();
+    post.comments.pull({ _id: commentId });
     await post.save();
 
     return res.status(200).json({
@@ -153,11 +157,13 @@ const deleteComment = async (req, res) => {
       message: "Comment deleted successfully",
     });
   } catch (error) {
+    console.error(error);
     return res
       .status(500)
       .json({ success: false, message: "Server error", error: error.message });
   }
 };
+
 
 const getComments = async (req, res) => {
   try {
