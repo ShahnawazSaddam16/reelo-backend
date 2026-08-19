@@ -1,6 +1,7 @@
 const Posts = require("../../models/Blogs/post");
 const Users = require("../../models/auth");
 const Profile = require("../../models/profile");
+const Notification = require("../../models/Blogs/notification");
 
 const toggleLike = async (req, res) => {
   try {
@@ -43,6 +44,30 @@ const toggleLike = async (req, res) => {
     post.likedBy.push(req.userId);
     post.likes = post.likedBy.length;
     await post.save();
+
+    if (post.userId.toString() !== req.userId) {
+      const profile = await Profile.findOne({ userId: req.userId });
+      if (profile) {
+        const existingNotification = await Notification.findOne({
+          recipientId: post.userId,
+          senderId: req.userId,
+          postId: post._id,
+          type: "like",
+        });
+
+        if (!existingNotification) {
+          await Notification.create({
+            recipientId: post.userId,
+            senderId: req.userId,
+            profileId: profile._id,
+            username: profile.username,
+            avator: profile.avator,
+            postId: post._id,
+            type: "like",
+          });
+        }
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -104,6 +129,19 @@ const addComment = async (req, res) => {
 
     post.comments.push(comment);
     await post.save();
+
+    if (post.userId.toString() !== req.userId) {
+      await Notification.create({
+        recipientId: post.userId,
+        senderId: req.userId,
+        profileId: profile._id,
+        username: profile.username,
+        avator: profile.avator,
+        postId: post._id,
+        type: "comment",
+        text,
+      });
+    }
 
     return res.status(201).json({
       success: true,
