@@ -62,6 +62,7 @@ const toggleLike = async (req, res) => {
             profileId: profile._id,
             username: profile.username,
             avator: profile.avator,
+            postcontent: post.content,
             postId: post._id,
             type: "like",
           });
@@ -137,6 +138,7 @@ const addComment = async (req, res) => {
         profileId: profile._id,
         username: profile.username,
         avator: profile.avator,
+        postcontent: post.content,
         postId: post._id,
         type: "comment",
         text,

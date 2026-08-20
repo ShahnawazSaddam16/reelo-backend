@@ -5,6 +5,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
 const {createPost, userPosts, editPost, deletePost, getAllPosts, getPostsByUserId} = require("../controllers/Blogs/post");
 const {toggleLike, addComment, deleteComment, getComments} = require("../controllers/Blogs/Postinteractions");
+const {getNotifications, deleteNotification} = require("../controllers/Blogs/notifications");
 
 //Post Routes
 router.post("/create-post", authMiddleware, limiter, upload.any(), createPost);
@@ -19,5 +20,9 @@ router.post("/:id/like", authMiddleware, limiter, toggleLike);
 router.post("/:id/comment", authMiddleware, limiter, addComment);
 router.delete("/:id/comment/:commentId", authMiddleware, limiter, deleteComment);
 router.get("/:id/comments",authMiddleware, limiter, getComments);
+
+// Notification
+router.get("/my-notifications", authMiddleware, limiter, getNotifications);
+router.delete("/delete-notifications/:id", authMiddleware, limiter, deleteNotification);
 
 module.exports = router;
