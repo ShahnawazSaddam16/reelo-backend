@@ -2,6 +2,7 @@ const Posts = require("../../models/Blogs/post");
 const Users = require("../../models/auth");
 const Profile = require("../../models/profile");
 const Notification = require("../../models/Blogs/notification");
+const { getIO } = require("../../config/socket");
 
 const toggleLike = async (req, res) => {
   try {
@@ -56,7 +57,7 @@ const toggleLike = async (req, res) => {
         });
 
         if (!existingNotification) {
-          await Notification.create({
+          const notification = await Notification.create({
             recipientId: post.userId,
             senderId: req.userId,
             profileId: profile._id,
@@ -66,6 +67,8 @@ const toggleLike = async (req, res) => {
             postId: post._id,
             type: "like",
           });
+
+          getIO().to(post.userId.toString()).emit("newNotification", notification);
         }
       }
     }
@@ -132,7 +135,7 @@ const addComment = async (req, res) => {
     await post.save();
 
     if (post.userId.toString() !== req.userId) {
-      await Notification.create({
+      const notification = await Notification.create({
         recipientId: post.userId,
         senderId: req.userId,
         profileId: profile._id,
@@ -143,6 +146,8 @@ const addComment = async (req, res) => {
         type: "comment",
         text,
       });
+
+      getIO().to(post.userId.toString()).emit("newNotification", notification);
     }
 
     return res.status(201).json({
