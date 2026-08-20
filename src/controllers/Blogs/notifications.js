@@ -1,4 +1,5 @@
 const Notification = require("../../models/Blogs/notification");
+const { getIO } = require("../../config/socket");
 
 const getNotifications = async (req, res) => {
   try {
@@ -36,6 +37,8 @@ const deleteNotification = async (req, res) => {
     }
 
     await notification.deleteOne();
+
+    getIO().to(req.userId).emit("notificationDeleted", id);
 
     return res.status(200).json({
       success: true,
