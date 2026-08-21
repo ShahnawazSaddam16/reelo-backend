@@ -1,4 +1,7 @@
 const Users = require("../models/auth");
+const Post = require("../models/Blogs/post");
+const Notification = require("../models/Blogs/notification");
+const Profile = require("../models/profile");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const sendVerificationEmail = require("../utils/sendVerificationEmail");
@@ -210,4 +213,23 @@ const Me = async (req, res) => {
     }
 };
 
-module.exports = { SignIn, VerifyEmail, ResendCode, Login, Logout, Me };
+const DeleteAccount = async (req, res) => {
+    try {
+        const user = await Users.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        await Post.deleteMany({ userId: req.userId });
+        await Profile.findByIdAndDelete({userId: req.userId});
+        await Notification.deleteMany({ userId: req.userId });
+        await Users.findByIdAndDelete(req.userId);
+
+        return res.status(200).json({ success: true, message: "Account deleted successfully" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+module.exports = { SignIn, VerifyEmail, ResendCode, Login, Logout, Me, DeleteAccount };
