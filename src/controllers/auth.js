@@ -221,9 +221,9 @@ const DeleteAccount = async (req, res) => {
         }
 
         await Post.deleteMany({ userId: req.userId });
-        await Profile.findByIdAndDelete({userId: req.userId});
+        await Profile.deleteOne({ userId: req.userId });
         await Notification.deleteMany({ userId: req.userId });
-        await Users.findByIdAndDelete(req.userId);
+        await Users.deleteOne({ _id: req.userId });
 
         return res.status(200).json({ success: true, message: "Account deleted successfully" });
     } catch (err) {
@@ -231,5 +231,6 @@ const DeleteAccount = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
 
 module.exports = { SignIn, VerifyEmail, ResendCode, Login, Logout, Me, DeleteAccount };
