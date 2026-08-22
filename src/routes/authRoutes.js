@@ -8,8 +8,8 @@ router.post("/signup", limiter, SignIn);
 router.post("/verify-email", VerifyEmail);
 router.post("/resend-code", ResendCode);
 router.post("/login", limiter, Login);
-router.post("/logout", authMiddleware, Logout);
-router.get("/me", authMiddleware, Me);
+router.post("/logout", limiter, authMiddleware, Logout);
+router.get("/me", limiter, authMiddleware, Me);
 router.delete("/delete-account", authMiddleware, limiter, DeleteAccount);
 
 module.exports = router;
