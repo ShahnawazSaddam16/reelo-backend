@@ -1,6 +1,8 @@
 const Stories = require("../../models/Stories/story");
 const Users = require("../../models/auth");
 const Profile = require("../../models/profile");
+const Notification = require("../../models/Blogs/notification");
+const { getIO } = require("../../config/socket");
 
 const createStory = async(req,res)=>{
     try{
@@ -75,5 +77,6 @@ const getAllStories = async(req,res)=>{
         return res.status(500).json({success: false, err});
     }
 }
+
 
 module.exports = {createStory, getStory, getAllStories};

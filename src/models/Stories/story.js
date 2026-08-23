@@ -16,11 +16,10 @@ const StorySchema = new mongoose.Schema({
         required: true
     },
     username: {
-        type: String,
-        required: true,
+        type: String
     },
-    avator:{
-        type: String,
+    avator: {
+        type: String
     },
     content: {
         type: String,
@@ -30,6 +29,16 @@ const StorySchema = new mongoose.Schema({
         type: String,
         enum: ["image", "video"],
         required: true
+    },
+    likedBy: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Users"
+        }
+    ],
+    likes: {
+        type: Number,
+        default: 0
     },
     viewedBy: [
         {
