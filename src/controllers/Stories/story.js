@@ -58,4 +58,18 @@ const getStory = async(req,res)=>{
     }
 }
 
+const getAllStories = async(req,res)=>{
+    try{
+        const allStories = await Stories.find().sort({createdAt: -1});
+
+        if(!allStories){
+            return res.status(404).json({success: false, message: "Stories are not found"});
+        }
+
+        return res.status(200).json({success: true, allStories});
+    } catch(err){
+        return res.status(500).json({success: false, err});
+    }
+}
+
 module.exports = {createStory, getStory};
