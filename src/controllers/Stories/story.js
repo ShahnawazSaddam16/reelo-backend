@@ -64,7 +64,7 @@ const getStory = async(req,res)=>{
 
 const getAllStories = async(req,res)=>{
     try{
-        const allStories = await Stories.find({ expiresAt: { $gt: new Date() } })
+        const allStories = await Stories.find()
           .populate("userId", "username avator")
           .sort({createdAt: -1});
 
