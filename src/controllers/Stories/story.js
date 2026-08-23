@@ -28,6 +28,8 @@ const createStory = async(req,res)=>{
             userId: userId,
             profileId: profile._id,
             email: user.email,
+            avator: profile.avator,
+            username: profile.username,
             content: req.file.path,
             mediaType: mediaType
         });
@@ -60,7 +62,9 @@ const getStory = async(req,res)=>{
 
 const getAllStories = async(req,res)=>{
     try{
-        const allStories = await Stories.find().sort({createdAt: -1});
+        const allStories = await Stories.find()
+          .populate("userId", "username avator")
+          .sort({createdAt: -1});
 
         if(!allStories){
             return res.status(404).json({success: false, message: "Stories are not found"});
@@ -72,4 +76,4 @@ const getAllStories = async(req,res)=>{
     }
 }
 
-module.exports = {createStory, getStory};
+module.exports = {createStory, getStory, getAllStories};

@@ -15,6 +15,13 @@ const StorySchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    username: {
+        type: String,
+        required: true,
+    },
+    avator:{
+        type: String,
+    },
     content: {
         type: String,
         required: true
