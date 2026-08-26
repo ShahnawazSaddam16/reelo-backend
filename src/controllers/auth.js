@@ -232,5 +232,68 @@ const DeleteAccount = async (req, res) => {
     }
 };
 
+const ForgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
 
-module.exports = { SignIn, VerifyEmail, ResendCode, Login, Logout, Me, DeleteAccount };
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Please fill all fields" });
+        }
+
+        const user = await Users.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const code = generateCode();
+        user.resetPasswordCode = code;
+        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
+        await user.save();
+
+        await sendVerificationEmail(user.email, code);
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset code sent to email",
+            userId: user._id
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+const ResetPassword = async (req, res) => {
+    try {
+        const { userId, email, code, newPassword } = req.body;
+
+        if ((!userId && !email) || !code || !newPassword) {
+            return res.status(400).json({ success: false, message: "Please fill all fields" });
+        }
+
+        const user = userId ? await Users.findById(userId) : await Users.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        if (user.resetPasswordCode !== code) {
+            return res.status(400).json({ success: false, message: "Invalid code" });
+        }
+
+        if (user.resetPasswordExpires < Date.now()) {
+            return res.status(400).json({ success: false, message: "Code expired" });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        user.resetPasswordCode = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        return res.status(200).json({ success: true, message: "Password reset successful" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+module.exports = { SignIn, VerifyEmail, ResendCode, Login, Logout, Me, DeleteAccount, ForgotPassword, ResetPassword };
