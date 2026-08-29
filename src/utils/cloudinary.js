@@ -1,4 +1,5 @@
 const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 require("dotenv").config();
 
 cloudinary.config({
@@ -7,20 +8,13 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const uploadToCloudinary = (buffer, folder = "reelo") => {
-    return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-            {
-                folder,
-                resource_type: "auto"
-            },
-            (error, result) => {
-                if (error) return reject(error);
-                resolve(result);
-            }
-        );
-        stream.end(buffer);
-    });
-};
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: "reelo",
+        resource_type: "auto",
+        allowed_formats: ["jpg", "jpeg", "png", "webp", "mp4", "mov", "avi", "webm"]
+    }
+});
 
-module.exports = { cloudinary, uploadToCloudinary };
+module.exports = { cloudinary, storage };
