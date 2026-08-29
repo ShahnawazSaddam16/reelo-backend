@@ -1,9 +1,7 @@
-const dotenv = require("dotenv");
-dotenv.config();
-
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
+const dotenv = require("dotenv");
 const dbConnection = require("./src/config/dbConnection");
 const authRoutes = require("./src/routes/authRoutes");
 const profileRoutes = require("./src/routes/profileRoutes");
@@ -13,8 +11,10 @@ const storyRoutes = require("./src/routes/StoryRoutes");
 const { initSocket } = require("./src/config/socket");
 
 const app = express();
-const PORT = process.env.PORT || 5015;
+dotenv.config();
+const PORT = process.env.PORT;
 
+//middleware
 app.use(express.json());
 app.use(cors({
     origin: "*",
@@ -22,21 +22,24 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+//Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/blog", blogRoutes);
 app.use("/api/setting", settingRoutes);
 app.use("/api/story", storyRoutes);
 
+//dbConnection
 dbConnection();
 
 const server = http.createServer(app);
 initSocket(server);
 
-server.on("error", (err) => {
-    console.error("Server failed to start:", err);
-});
-
-server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server Running Successfully at ${PORT}`);
-});
+//Server Listining
+server.listen(PORT, (err)=>{
+    try{
+        console.log(`Server Running Successfully at ${PORT}`);
+    } catch(err){
+        console.error(err);
+    }
+})
