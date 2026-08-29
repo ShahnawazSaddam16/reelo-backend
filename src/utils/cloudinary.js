@@ -12,8 +12,7 @@ const uploadToCloudinary = (buffer, folder = "reelo") => {
         const stream = cloudinary.uploader.upload_stream(
             {
                 folder,
-                resource_type: "auto",
-                allowed_formats: ["jpg", "jpeg", "png", "webp", "mp4", "mov", "avi", "webm"]
+                resource_type: "auto"
             },
             (error, result) => {
                 if (error) return reject(error);
