@@ -1,23 +1,32 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 require("dotenv").config();
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendVerificationEmail = async (to, code) => {
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+  const { data, error } = await resend.emails.send({
+    from: "onboarding@resend.dev",
     to,
     subject: "Verify your email",
-    html: `<div style="font-family:sans-serif"><h2>Email Verification</h2><p>Your verification code is:</p><h1 style="letter-spacing:4px">${code}</h1><p>This code expires in 10 minutes.</p></div>`,
+    html: `
+      <div style="background-color:#0E0E10;padding:40px 20px;font-family:sans-serif;">
+        <div style="max-width:480px;margin:0 auto;background-color:#17171A;border-radius:16px;padding:32px;border:1px solid #2A2A2E;">
+          <h2 style="color:#ffffff;margin:0 0 8px;font-size:20px;">Email Verification</h2>
+          <p style="color:#A0A0A8;margin:0 0 24px;font-size:14px;">Your verification code is:</p>
+          <div style="background-color:#0E0E10;border:1px solid #7C3AED;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+            <h1 style="color:#A78BFA;letter-spacing:8px;margin:0;font-size:32px;">${code}</h1>
+          </div>
+          <p style="color:#6B6B72;font-size:13px;margin:0;">This code expires in 10 minutes.</p>
+        </div>
+      </div>
+    `,
   });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
 };
 
 module.exports = sendVerificationEmail;
