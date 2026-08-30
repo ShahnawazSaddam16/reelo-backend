@@ -9,7 +9,7 @@ const createStory = async(req,res)=>{
         const userId = req.userId;
 
         if(!req.file){
-            return res.status(401).json({success: false, message: "Please fill all fields"});
+            return res.status(400).json({success: false, message: "Please fill all fields"});
         }
 
         const user = await Users.findById(userId);
@@ -64,13 +64,9 @@ const getStory = async(req,res)=>{
 
 const getAllStories = async(req,res)=>{
     try{
-        const allStories = await Stories.find()
-          .populate("userId", "username avator")
+        const allStories = await Stories.find({expiresAt: {$gt: new Date()}})
+          .populate("userId", "username")
           .sort({createdAt: -1});
-
-        if(!allStories){
-            return res.status(404).json({success: false, message: "Stories are not found"});
-        }
 
         return res.status(200).json({success: true, allStories});
     } catch(err){
