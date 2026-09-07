@@ -1,3 +1,4 @@
+// controllers/postController.js
 const Posts = require("../../models/Blogs/post");
 const Users = require("../../models/auth");
 const Profile = require("../../models/profile");
@@ -7,9 +8,7 @@ const createPost = async (req, res) => {
     const { content: bodyContent, title, desc } = req.body;
 
     if (!title) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Please fill all fields" });
+      return res.status(400).json({ success: false, message: "Please fill all fields" });
     }
 
     if (!req.userId) {
@@ -18,16 +17,12 @@ const createPost = async (req, res) => {
 
     const user = await Users.findById(req.userId);
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
     const profile = await Profile.findOne({ userId: req.userId });
     if (!profile) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Profile not found" });
+      return res.status(404).json({ success: false, message: "Profile not found" });
     }
 
     let content = bodyContent || null;
@@ -70,28 +65,19 @@ const createPost = async (req, res) => {
       post: newPost,
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
 const userPosts = async (req, res) => {
   try {
-    if (!req.userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
-    const userPosts = await Posts.find({ userId: req.userId });
+    if (!req.userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    if (!userPosts) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User Posts not found" });
-    }
+    const userPosts = await Posts.find({ userId: req.userId }).sort({ createdAt: -1 });
 
     return res.status(200).json({ success: true, userPosts });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err });
+    return res.status(500).json({ success: false, message: err.message || err });
   }
 };
 
@@ -100,20 +86,12 @@ const editPost = async (req, res) => {
     const { id } = req.params;
     const { content: bodyContent, title, desc } = req.body;
 
-    if (!req.userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
+    if (!req.userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
     const post = await Posts.findById(id);
-    if (!post) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Post not found" });
-    }
+    if (!post) return res.status(404).json({ success: false, message: "Post not found" });
 
-    if (post.userId.toString() !== req.userId) {
-      return res.status(403).json({ success: false, message: "Forbidden" });
-    }
+    if (post.userId.toString() !== req.userId) return res.status(403).json({ success: false, message: "Forbidden" });
 
     let content = bodyContent || post.content;
     let contentType = post.contentType;
@@ -145,9 +123,7 @@ const editPost = async (req, res) => {
       post,
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
@@ -155,20 +131,12 @@ const deletePost = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!req.userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
+    if (!req.userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
     const post = await Posts.findById(id);
-    if (!post) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Post not found" });
-    }
+    if (!post) return res.status(404).json({ success: false, message: "Post not found" });
 
-    if (post.userId.toString() !== req.userId) {
-      return res.status(403).json({ success: false, message: "Forbidden" });
-    }
+    if (post.userId.toString() !== req.userId) return res.status(403).json({ success: false, message: "Forbidden" });
 
     await Posts.findByIdAndDelete(id);
 
@@ -177,9 +145,7 @@ const deletePost = async (req, res) => {
       message: "Post deleted successfully",
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
@@ -191,20 +157,18 @@ const getAllPosts = async (req, res) => {
     return res.status(200).json({ success: true, allposts });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ success: false, message: err });
+    return res.status(500).json({ success: false, message: err.message || err });
   }
 };
 
 const getPostsByUserId = async (req, res) => {
-    try {
-        const { profileId } = req.params;
-
-        const userPosts = await Posts.find({ profileId }).sort({ createdAt: -1 });
-
-        return res.status(200).json({ success: true, userPosts });
-    } catch (err) {
-        return res.status(500).json({ success: false, message: err.message });
-    }
+  try {
+    const { profileId } = req.params;
+    const userPosts = await Posts.find({ profileId }).sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, userPosts });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message || err });
+  }
 };
 
 module.exports = { createPost, userPosts, editPost, deletePost, getAllPosts, getPostsByUserId };
