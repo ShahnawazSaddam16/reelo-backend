@@ -8,5 +8,4 @@ router.post("/create-notification-control", limiter, authMiddleware, createNotif
 router.get("/get-notification-control", limiter, authMiddleware, getNotificationControl);
 router.post("/update-account-type", limiter, authMiddleware, updateAccountType);
 
-
 module.exports = router;
