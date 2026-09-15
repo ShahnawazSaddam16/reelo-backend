@@ -1,5 +1,6 @@
 const Setting = require("../models/setting");
 const Users = require("../models/auth");
+const mongoose = require("mongoose");
 
 const createNotificationControl = async(req,res)=>{
     try{
@@ -89,13 +90,15 @@ const addAllowedViewer = async(req,res)=>{
             return res.status(400).json({message:"account is not private"});
         }
 
-        const viewer = await Users.findById(viewerId);
+        const viewer = mongoose.Types.ObjectId.isValid(viewerId)
+            ? await Users.findById(viewerId)
+            : await Users.findOne({ $or: [{ username: viewerId }, { email: viewerId }] });
         if(!viewer){
             return res.status(404).json({message:"viewer not found"});
         }
 
-        if(!setting.allowedViewers.includes(viewerId)){
-            setting.allowedViewers.push(viewerId);
+        if(!setting.allowedViewers.includes(viewer._id)){
+            setting.allowedViewers.push(viewer._id);
             await setting.save();
         }
 
