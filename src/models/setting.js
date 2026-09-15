@@ -20,10 +20,6 @@ const settingSchema = new mongoose.Schema({
         enum: ["public", "private"],
         default: "public"
     },
-    allowedViewers: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Users"
-    }]
 }, { timestamps: true });
 
 module.exports = mongoose.model("Setting", settingSchema);
