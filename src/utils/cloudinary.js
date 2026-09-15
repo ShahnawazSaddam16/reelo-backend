@@ -10,11 +10,12 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
-    params: {
+    params: (req, file) => ({
         folder: "reelo",
         resource_type: "auto",
-        allowed_formats: ["jpg", "jpeg", "png", "webp", "mp4", "mov", "avi", "webm"]
-    }
+        allowed_formats: ["jpg", "jpeg", "png", "webp", "mp4", "mov", "avi", "webm"],
+        chunk_size: 6000000 
+    })
 });
 
 module.exports = { cloudinary, storage };
