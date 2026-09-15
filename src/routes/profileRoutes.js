@@ -9,6 +9,7 @@ router.post("/create-profile", authMiddleware, limiter, upload.single("avator"),
 router.get("/my-profile", authMiddleware, limiter, userProfile);
 router.put("/edit-profile", authMiddleware, limiter, upload.single("avator"), editProfile);
 router.get("/all-profiles", authMiddleware, limiter, getAllProfiles);
+router.get("/all-profiles/search", authMiddleware, limiter, getAllProfiles);
 router.get("/user-profile/:id", authMiddleware, limiter, getProfileById);
 
 module.exports = router;

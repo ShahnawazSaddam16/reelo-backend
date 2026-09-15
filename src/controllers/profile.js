@@ -90,18 +90,19 @@ const editProfile = async (req, res) => {
 
 const getAllProfiles = async (req, res) => {
     try {
-        const { search = "", page = 1, limit = 15 } = req.query;
+        const { search = "", query = "", page = 1, limit = 15 } = req.query;
+        const searchTerm = search || query;
 
-        const query = search
-            ? { username: { $regex: `^${search}`, $options: "i" } }
+        const filter = searchTerm
+            ? { username: { $regex: `^${searchTerm}`, $options: "i" } }
             : {};
 
-        const allProfiles = await Profile.find(query)
+        const allProfiles = await Profile.find(filter)
             .sort({ createdAt: -1 })
             .skip((Number(page) - 1) * Number(limit))
             .limit(Number(limit));
 
-        const total = await Profile.countDocuments(query);
+        const total = await Profile.countDocuments(filter);
 
         return res.status(200).json({
             success: true,
