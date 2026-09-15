@@ -2,6 +2,7 @@ const Stories = require("../../models/Stories/story");
 const Users = require("../../models/auth");
 const Profile = require("../../models/profile");
 const Notification = require("../../models/Blogs/notification");
+const Setting = require("../../models/setting");
 const { getIO } = require("../../config/socket");
 
 const createStory = async(req,res)=>{
@@ -64,7 +65,10 @@ const getStory = async(req,res)=>{
 
 const getAllStories = async(req,res)=>{
     try{
-        const allStories = await Stories.find({expiresAt: {$gt: new Date()}})
+        const privateSettings = await Setting.find({ accountType: "private" }).select("userId");
+        const privateUserIds = privateSettings.map((s) => s.userId);
+
+        const allStories = await Stories.find({expiresAt: {$gt: new Date()}, userId: {$nin: privateUserIds}})
           .populate("userId", "username")
           .sort({createdAt: -1});
 
