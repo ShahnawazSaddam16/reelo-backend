@@ -14,6 +14,11 @@ const settingSchema = new mongoose.Schema({
     notificationSwitch: {
         type: Boolean,
         default: true
+    },
+    accountType: {
+        type: String,
+        enum: ["public", "private"],
+        default: "public"
     }
 }, { timestamps: true });
 
