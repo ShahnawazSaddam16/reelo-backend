@@ -1,6 +1,7 @@
 const Posts = require("../../models/Blogs/post");
 const Users = require("../../models/auth");
 const Profile = require("../../models/profile");
+const Setting = require("../../models/setting");
 
 const createPost = async (req, res) => {
   try {
@@ -185,7 +186,10 @@ const deletePost = async (req, res) => {
 
 const getAllPosts = async (req, res) => {
   try {
-    const allposts = await Posts.find()
+    const privateSettings = await Setting.find({ accountType: "private" }).select("userId");
+    const privateUserIds = privateSettings.map((s) => s.userId);
+
+    const allposts = await Posts.find({ userId: { $nin: privateUserIds } })
       .sort({ createdAt: -1 })
       .populate("profileId", "username avator");
     return res.status(200).json({ success: true, allposts });
@@ -198,6 +202,16 @@ const getAllPosts = async (req, res) => {
 const getPostsByUserId = async (req, res) => {
     try {
         const { profileId } = req.params;
+
+        const profile = await Profile.findById(profileId);
+        if (!profile) {
+            return res.status(404).json({ success: false, message: "Profile not found" });
+        }
+
+        const setting = await Setting.findOne({ userId: profile.userId });
+        if (setting && setting.accountType === "private") {
+            return res.status(403).json({ success: false, message: "This account is private" });
+        }
 
         const userPosts = await Posts.find({ profileId }).sort({ createdAt: -1 });
 
