@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const profileSchema = new mongoose.Schema({
+const settingSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Users",
@@ -11,29 +11,19 @@ const profileSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    username: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true
+    notificationSwitch: {
+        type: Boolean,
+        default: true
     },
-    avator: {
+    accountType: {
         type: String,
-        default: ""
-    },
-    bio: {
-        type: String,
-        default: ""
-    },
-    links: {
-        type: String,
-        default: ""
+        enum: ["public", "private"],
+        default: "public"
     },
     followers: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Users",
-        default: []
+        ref: "Users"
     }]
 }, { timestamps: true });
 
-module.exports = mongoose.model("Profile", profileSchema);
+module.exports = mongoose.model("Setting", settingSchema);
