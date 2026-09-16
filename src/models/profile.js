@@ -30,8 +30,19 @@ const profileSchema = new mongoose.Schema({
         default: []
     },
     followers: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        },
+        username: {
+            type: String
+        },
+        email: {
+            type: String
+        },
+        avator: {
+            type: String
+        }
     }]
 }, { timestamps: true });
 
