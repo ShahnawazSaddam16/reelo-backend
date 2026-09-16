@@ -22,7 +22,7 @@ const settingSchema = new mongoose.Schema({
     },
     followers: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Profile"
+        ref: "Users"
     }]
 }, { timestamps: true });
 
