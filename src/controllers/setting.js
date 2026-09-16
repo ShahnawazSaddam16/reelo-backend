@@ -85,43 +85,43 @@ const addFollower = async(req,res)=>{
             return res.status(400).json({message:"username is required"});
         }
 
-        const targetProfile = await Profile.findOne({username});
+        const followerProfile = await Profile.findOne({username}).select("username avator email userId");
 
-        if(!targetProfile){
+        if(!followerProfile){
             return res.status(404).json({message:"profile not found"});
         }
 
-        if(targetProfile.userId.toString() === userId.toString()){
+        if(followerProfile.userId.toString() === userId.toString()){
             return res.status(400).json({message:"cannot follow yourself"});
         }
 
-        if(!Array.isArray(targetProfile.followers)){
-            targetProfile.followers = [];
+        const ownProfile = await Profile.findOne({userId});
+
+        if(!ownProfile){
+            return res.status(404).json({message:"profile not found"});
         }
 
-        const alreadyFollowing = targetProfile.followers.some(f => f.userId && f.userId.toString() === userId.toString());
+        if(!Array.isArray(ownProfile.followers)){
+            ownProfile.followers = [];
+        }
+
+        const alreadyFollowing = ownProfile.followers.some(f => f.userId && f.userId.toString() === followerProfile.userId.toString());
 
         if(alreadyFollowing){
             return res.status(400).json({message:"already following"});
         }
 
-        const followerProfile = await Profile.findOne({userId}).select("username avator email");
-
-        if(!followerProfile){
-            return res.status(404).json({message:"follower profile not found"});
-        }
-
-        targetProfile.followers.push({
-            userId,
+        ownProfile.followers.push({
+            userId: followerProfile.userId,
             username: followerProfile.username,
             email: followerProfile.email,
             avator: followerProfile.avator
         });
 
-        await targetProfile.save();
+        await ownProfile.save();
 
         res.status(200).json({
-            profile: targetProfile,
+            profile: ownProfile,
             follower: followerProfile
         });
     }catch(error){
@@ -138,25 +138,30 @@ const removeFollower = async(req,res)=>{
             return res.status(400).json({message:"username is required"});
         }
 
-        const targetProfile = await Profile.findOne({username});
-        if(!targetProfile){
+        const followerProfile = await Profile.findOne({username}).select("username avator email userId");
+        if(!followerProfile){
             return res.status(404).json({message:"profile not found"});
         }
 
-        if(!Array.isArray(targetProfile.followers)){
-            targetProfile.followers = [];
+        const ownProfile = await Profile.findOne({userId});
+        if(!ownProfile){
+            return res.status(404).json({message:"profile not found"});
         }
 
-        const isFollowing = targetProfile.followers.some(f => f.userId && f.userId.toString() === userId.toString());
+        if(!Array.isArray(ownProfile.followers)){
+            ownProfile.followers = [];
+        }
+
+        const isFollowing = ownProfile.followers.some(f => f.userId && f.userId.toString() === followerProfile.userId.toString());
 
         if(!isFollowing){
             return res.status(400).json({message:"not following"});
         }
 
-        targetProfile.followers = targetProfile.followers.filter(f => !f.userId || f.userId.toString() !== userId.toString());
-        await targetProfile.save();
+        ownProfile.followers = ownProfile.followers.filter(f => !f.userId || f.userId.toString() !== followerProfile.userId.toString());
+        await ownProfile.save();
 
-        res.status(200).json(targetProfile);
+        res.status(200).json(ownProfile);
     }catch(error){
         res.status(500).json({message:error.message});
     }
