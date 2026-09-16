@@ -94,6 +94,11 @@ const addFollower = async(req,res)=>{
             return res.status(400).json({message:"cannot follow yourself"});
         }
 
+        // guard against documents where followers was never initialized
+        if(!Array.isArray(targetProfile.followers)){
+            targetProfile.followers = [];
+        }
+
         if(targetProfile.followers.includes(userId)){
             return res.status(400).json({message:"already following"});
         }
@@ -119,6 +124,10 @@ const removeFollower = async(req,res)=>{
         const targetProfile = await Profile.findOne({username});
         if(!targetProfile){
             return res.status(404).json({message:"profile not found"});
+        }
+
+        if(!Array.isArray(targetProfile.followers)){
+            targetProfile.followers = [];
         }
 
         if(!targetProfile.followers.includes(userId)){
