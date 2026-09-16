@@ -1,5 +1,6 @@
 const Setting = require("../models/setting");
 const Users = require("../models/auth");
+const Profile = require("../models/profile");
 
 const createNotificationControl = async(req,res)=>{
     try{
@@ -75,4 +76,62 @@ const updateAccountType = async(req,res)=>{
     }
 }
 
-module.exports = {createNotificationControl, getNotificationControl, updateAccountType};
+const addFollower = async(req,res)=>{
+    try{
+        const {username} = req.body;
+        const userId = req.userId;
+
+        if(!username){
+            return res.status(400).json({message:"username is required"});
+        }
+
+        const targetProfile = await Profile.findOne({username});
+        if(!targetProfile){
+            return res.status(404).json({message:"profile not found"});
+        }
+
+        if(targetProfile.userId.toString() === userId.toString()){
+            return res.status(400).json({message:"cannot follow yourself"});
+        }
+
+        if(targetProfile.followers.includes(userId)){
+            return res.status(400).json({message:"already following"});
+        }
+
+        targetProfile.followers.push(userId);
+        await targetProfile.save();
+
+        res.status(200).json(targetProfile);
+    }catch(error){
+        res.status(500).json({message:error.message});
+    }
+}
+
+const removeFollower = async(req,res)=>{
+    try{
+        const {username} = req.body;
+        const userId = req.userId;
+
+        if(!username){
+            return res.status(400).json({message:"username is required"});
+        }
+
+        const targetProfile = await Profile.findOne({username});
+        if(!targetProfile){
+            return res.status(404).json({message:"profile not found"});
+        }
+
+        if(!targetProfile.followers.includes(userId)){
+            return res.status(400).json({message:"not following"});
+        }
+
+        targetProfile.followers = targetProfile.followers.filter(id => id.toString() !== userId.toString());
+        await targetProfile.save();
+
+        res.status(200).json(targetProfile);
+    }catch(error){
+        res.status(500).json({message:error.message});
+    }
+}
+
+module.exports = {createNotificationControl, getNotificationControl, updateAccountType, addFollower, removeFollower}
