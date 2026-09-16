@@ -99,15 +99,26 @@ const addFollower = async(req,res)=>{
             targetProfile.followers = [];
         }
 
-        if(targetProfile.followers.includes(userId)){
+        const alreadyFollowing = targetProfile.followers.some(f => f.userId && f.userId.toString() === userId.toString());
+
+        if(alreadyFollowing){
             return res.status(400).json({message:"already following"});
         }
 
-        targetProfile.followers.push(userId);
+        const followerProfile = await Profile.findOne({userId}).select("username avator email");
+
+        if(!followerProfile){
+            return res.status(404).json({message:"follower profile not found"});
+        }
+
+        targetProfile.followers.push({
+            userId,
+            username: followerProfile.username,
+            email: followerProfile.email,
+            avator: followerProfile.avator
+        });
 
         await targetProfile.save();
-
-        const followerProfile = await Profile.findOne({userId}).select("username avator email");
 
         res.status(200).json({
             profile: targetProfile,
@@ -136,11 +147,13 @@ const removeFollower = async(req,res)=>{
             targetProfile.followers = [];
         }
 
-        if(!targetProfile.followers.includes(userId)){
+        const isFollowing = targetProfile.followers.some(f => f.userId && f.userId.toString() === userId.toString());
+
+        if(!isFollowing){
             return res.status(400).json({message:"not following"});
         }
 
-        targetProfile.followers = targetProfile.followers.filter(id => id.toString() !== userId.toString());
+        targetProfile.followers = targetProfile.followers.filter(f => !f.userId || f.userId.toString() !== userId.toString());
         await targetProfile.save();
 
         res.status(200).json(targetProfile);
@@ -162,9 +175,7 @@ const getFollowers = async(req,res)=>{
             profile.followers = [];
         }
 
-        const followers = await Profile.find({ userId: { $in: profile.followers } }).select("username avator email");
-
-        res.status(200).json({ followers });
+        res.status(200).json({ followers: profile.followers });
     }catch(error){
         res.status(500).json({message:error.message});
     }
