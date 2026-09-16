@@ -94,7 +94,6 @@ const addFollower = async(req,res)=>{
             return res.status(400).json({message:"cannot follow yourself"});
         }
 
-        // guard against documents where followers was never initialized
         if(!Array.isArray(targetProfile.followers)){
             targetProfile.followers = [];
         }
@@ -106,7 +105,12 @@ const addFollower = async(req,res)=>{
         targetProfile.followers.push(userId);
         await targetProfile.save();
 
-        res.status(200).json(targetProfile);
+        const followerProfile = await Profile.findOne({userId}).select("username avator email");
+
+        res.status(200).json({
+            profile: targetProfile,
+            follower: followerProfile
+        });
     }catch(error){
         res.status(500).json({message:error.message});
     }
@@ -143,4 +147,25 @@ const removeFollower = async(req,res)=>{
     }
 }
 
-module.exports = {createNotificationControl, getNotificationControl, updateAccountType, addFollower, removeFollower}
+const getFollowers = async(req,res)=>{
+    try{
+        const userId = req.userId;
+
+        const profile = await Profile.findOne({userId});
+        if(!profile){
+            return res.status(404).json({message:"profile not found"});
+        }
+
+        if(!Array.isArray(profile.followers)){
+            profile.followers = [];
+        }
+
+        const followers = await Profile.find({ userId: { $in: profile.followers } }).select("username avator email");
+
+        res.status(200).json({ followers });
+    }catch(error){
+        res.status(500).json({message:error.message});
+    }
+}
+
+module.exports = {createNotificationControl, getNotificationControl, updateAccountType, addFollower, removeFollower, getFollowers}
