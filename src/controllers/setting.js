@@ -81,37 +81,60 @@ const addFollower = async(req,res)=>{
         const {username} = req.body;
         const userId = req.userId;
 
+        console.log("addFollower called");
+        console.log("req.body:", req.body);
+        console.log("userId:", userId);
+        console.log("username:", username);
+
         if(!username){
+            console.log("username missing, aborting");
             return res.status(400).json({message:"username is required"});
         }
 
         const targetProfile = await Profile.findOne({username});
+        console.log("targetProfile found:", targetProfile);
+
         if(!targetProfile){
+            console.log("no profile matched username:", username);
             return res.status(404).json({message:"profile not found"});
         }
 
+        console.log("targetProfile.userId:", targetProfile.userId, "type:", typeof targetProfile.userId);
+        console.log("userId:", userId, "type:", typeof userId);
+
         if(targetProfile.userId.toString() === userId.toString()){
+            console.log("cannot follow yourself triggered");
             return res.status(400).json({message:"cannot follow yourself"});
         }
 
         if(!Array.isArray(targetProfile.followers)){
+            console.log("followers was not array, resetting");
             targetProfile.followers = [];
         }
 
+        console.log("current followers before check:", targetProfile.followers);
+
         if(targetProfile.followers.includes(userId)){
+            console.log("already following triggered");
             return res.status(400).json({message:"already following"});
         }
 
         targetProfile.followers.push(userId);
-        await targetProfile.save();
+        console.log("followers after push:", targetProfile.followers);
+
+        const savedProfile = await targetProfile.save();
+        console.log("savedProfile:", savedProfile);
+        console.log("savedProfile.followers:", savedProfile.followers);
 
         const followerProfile = await Profile.findOne({userId}).select("username avator email");
+        console.log("followerProfile:", followerProfile);
 
         res.status(200).json({
             profile: targetProfile,
             follower: followerProfile
         });
     }catch(error){
+        console.log("addFollower error:", error);
         res.status(500).json({message:error.message});
     }
 }
