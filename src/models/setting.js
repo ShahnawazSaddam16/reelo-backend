@@ -19,11 +19,7 @@ const settingSchema = new mongoose.Schema({
         type: String,
         enum: ["public", "private"],
         default: "public"
-    },
-    followers: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Users"
-    }]
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Setting", settingSchema);
