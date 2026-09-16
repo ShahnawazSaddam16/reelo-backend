@@ -187,7 +187,9 @@ const deletePost = async (req, res) => {
 const getAllPosts = async (req, res) => {
   try {
     const privateSettings = await Setting.find({ accountType: "private" }).select("userId");
-    const privateUserIds = privateSettings.map((s) => s.userId);
+    const privateUserIds = privateSettings
+      .map((s) => s.userId)
+      .filter((id) => !req.userId || id.toString() !== req.userId.toString());
 
     const allposts = await Posts.find({ userId: { $nin: privateUserIds } })
       .sort({ createdAt: -1 })
