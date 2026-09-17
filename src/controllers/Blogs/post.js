@@ -210,9 +210,13 @@ const getPostsByUserId = async (req, res) => {
             return res.status(404).json({ success: false, message: "Profile not found" });
         }
 
-        const setting = await Setting.findOne({ userId: profile.userId });
-        if (setting && setting.accountType === "private") {
-            return res.status(403).json({ success: false, message: "This account is private" });
+        const isOwner = req.userId && profile.userId.toString() === req.userId.toString();
+
+        if (!isOwner) {
+            const setting = await Setting.findOne({ userId: profile.userId });
+            if (setting && setting.accountType === "private") {
+                return res.status(403).json({ success: false, message: "This account is private" });
+            }
         }
 
         const userPosts = await Posts.find({ profileId }).sort({ createdAt: -1 });
