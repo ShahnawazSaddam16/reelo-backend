@@ -78,5 +78,29 @@ const getAllStories = async(req,res)=>{
     }
 }
 
+const deleteStory = async(req,res)=>{
+    try{
+        const userId = req.userId;
+        const { storyId } = req.params;
 
-module.exports = {createStory, getStory, getAllStories};
+        const story = await Stories.findById(storyId);
+
+        if(!story){
+            return res.status(404).json({success: false, message: "Story not found"});
+        }
+
+        if(story.userId.toString() !== userId.toString()){
+            return res.status(403).json({success: false, message: "You are not authorized to delete this story"});
+        }
+
+        await Stories.findByIdAndDelete(storyId);
+
+        return res.status(200).json({success: true, message: "Story deleted successfully"});
+
+    }catch(error){
+        return res.status(500).json({success: false, message: "Internal server error", error: error.message});
+    }
+}
+
+
+module.exports = {createStory, getStory, getAllStories, deleteStory}
