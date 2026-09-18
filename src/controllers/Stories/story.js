@@ -1,10 +1,7 @@
 const Stories = require("../../models/Stories/story");
 const Users = require("../../models/auth");
 const Profile = require("../../models/profile");
-const Notification = require("../../models/Blogs/notification");
 const Setting = require("../../models/setting");
-const { getIO } = require("../../config/socket");
-
 const createStory = async(req,res)=>{
     try{
         const userId = req.userId;
@@ -63,20 +60,52 @@ const getStory = async(req,res)=>{
     }
 }
 
-const getAllStories = async(req,res)=>{
-    try{
+const getAllStories = async (req, res) => {
+    try {
+        const viewerId = req.userId ? req.userId.toString() : null;
+
         const privateSettings = await Setting.find({ accountType: "private" }).select("userId");
-        const privateUserIds = privateSettings.map((s) => s.userId);
+        const privateUserIds = privateSettings.map((s) => s.userId.toString());
 
-        const allStories = await Stories.find({expiresAt: {$gt: new Date()}, userId: {$nin: privateUserIds}})
-          .populate("userId", "username")
-          .sort({createdAt: -1});
+        let visiblePrivateUserIds = [];
 
-        return res.status(200).json({success: true, allStories});
-    } catch(err){
-        return res.status(500).json({success: false, err});
+        if (viewerId) {
+            const requesterProfile = await Profile.findOne({ userId: viewerId }).select("followers.userId");
+            const followingIds = new Set(
+                (requesterProfile?.followers || [])
+                    .map((f) => f.userId?.toString())
+                    .filter(Boolean)
+            );
+
+            const usersFollowingViewer = await Profile.find({ "followers.userId": viewerId }).select("userId");
+            const viewerFollowerIds = new Set(
+                (usersFollowingViewer || [])
+                    .map((profile) => profile.userId?.toString())
+                    .filter(Boolean)
+            );
+
+            visiblePrivateUserIds = [...new Set([
+                viewerId,
+                ...followingIds,
+                ...viewerFollowerIds
+            ])].filter((id) => privateUserIds.includes(id));
+        }
+
+        const allStories = await Stories.find({
+            expiresAt: { $gt: new Date() },
+            $or: [
+                { userId: { $nin: privateUserIds } },
+                { userId: { $in: visiblePrivateUserIds } }
+            ]
+        })
+            .populate("userId", "username")
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({ success: true, allStories });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message || err });
     }
-}
+};
 
 const deleteStory = async(req,res)=>{
     try{

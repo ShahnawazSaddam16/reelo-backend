@@ -46,5 +46,6 @@ const profileSchema = new mongoose.Schema({
     }]
 }, { timestamps: true });
 
+profileSchema.index({ "followers.userId": 1 });
 
 module.exports = mongoose.model("Profile", profileSchema);

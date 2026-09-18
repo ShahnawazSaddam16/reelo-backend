@@ -56,6 +56,7 @@ const StorySchema = new mongoose.Schema({
     }
 });
 
-StorySchema.index({expiresAt: 1}, {expireAfterSeconds: 0});
+StorySchema.index({ expiresAt: 1, userId: 1, createdAt: -1 });
+StorySchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model("Stories", StorySchema);

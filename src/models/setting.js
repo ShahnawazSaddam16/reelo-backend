@@ -22,4 +22,6 @@ const settingSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+settingSchema.index({ accountType: 1, userId: 1 });
+
 module.exports = mongoose.model("Setting", settingSchema);
