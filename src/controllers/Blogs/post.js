@@ -187,9 +187,17 @@ const deletePost = async (req, res) => {
 const getAllPosts = async (req, res) => {
   try {
     const privateSettings = await Setting.find({ accountType: "private" }).select("userId");
-    const privateUserIds = privateSettings
+    let privateUserIds = privateSettings
       .map((s) => s.userId)
       .filter((id) => !req.userId || id.toString() !== req.userId.toString());
+
+    if (req.userId && privateUserIds.length > 0) {
+      const requesterProfile = await Profile.findOne({ userId: req.userId }).select("followers");
+      const followingIds = new Set(
+        (requesterProfile?.followers || []).map((f) => f.userId?.toString())
+      );
+      privateUserIds = privateUserIds.filter((id) => !followingIds.has(id.toString()));
+    }
 
     const allposts = await Posts.find({ userId: { $nin: privateUserIds } })
       .sort({ createdAt: -1 })
@@ -215,7 +223,18 @@ const getPostsByUserId = async (req, res) => {
         if (!isOwner) {
             const setting = await Setting.findOne({ userId: profile.userId });
             if (setting && setting.accountType === "private") {
-                return res.status(403).json({ success: false, message: "This account is private" });
+                let isFollower = false;
+
+                if (req.userId) {
+                    const requesterProfile = await Profile.findOne({ userId: req.userId }).select("followers");
+                    isFollower = !!requesterProfile?.followers?.some(
+                        (f) => f.userId && f.userId.toString() === profile.userId.toString()
+                    );
+                }
+
+                if (!isFollower) {
+                    return res.status(403).json({ success: false, message: "This account is private" });
+                }
             }
         }
 
